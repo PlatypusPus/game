@@ -54,29 +54,12 @@ void DrawGrass(Model model)
     }
 }
 
-// void ModifyModelVertices(Model *model)
-// {
-//     Mesh *mesh = &model->meshes[0];
-//     if (mesh->vertices != NULL)
-//     {
-//         // Iterate over the vertices and modify them
-//         for (int i = 0; i < mesh->vertexCount; i++)
-//         {
-//             // Example modification: move vertices upward by 1.0f
-//             mesh->vertices[i*3 + 1] += 1.0f; // Assuming vertices are stored as (x, y, z)
-//         }
-
-//         // Update the mesh with the new vertices
-//         UpdateMesh(*mesh, 0);
-//     }
-// }
-
 int main(void)
 {
     const int screenWidth = 880;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "got it");
+    InitWindow(screenWidth, screenHeight, "raylib");
 
     Camera camera = {0};
     camera.position = (Vector3){0.0f, 2.0f, -100.0f};
