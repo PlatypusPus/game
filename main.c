@@ -3,7 +3,12 @@
 #include <raymath.h>
 #include <stdlib.h>
 #include <time.h>
+#define RLIGHTS_IMPLEMENTATION
 #include "rlights.h"
+
+#define GLSL_VERSION 330
+
+
 #define NUM_GRASS_BLADES 8000
 #define FIELD_SIZE 34.0f
 
