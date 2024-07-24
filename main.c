@@ -12,6 +12,9 @@
 #define PI 3.14159274101257324219f
 #define DEG2RAD (PI / 180.0f)
 
+Color background_color = (Color){255,255,185,100};
+Color planeColor = (Color){20,42,19,255};
+
 typedef struct
 {
     Vector3 position;
@@ -24,6 +27,18 @@ GrassBlade grassBlades[NUM_GRASS_BLADES];
 float Noise(float x, float y)
 {
     return sinf(x * 0.1f) * cosf(y * 0.1f) * 5.0f;
+}
+
+void ToggleFullScreen(int screenWidth, int screenHeight){
+            if(IsWindowFullscreen()){
+            int monitor = GetCurrentMonitor();
+            SetWindowSize(GetMonitorWidth(monitor), GetMonitorHeight(monitor));
+            ToggleFullscreen();
+        }
+        else{
+            ToggleFullscreen();
+            SetWindowSize(screenWidth, screenHeight);
+        }
 }
 
 void InitGrass()
@@ -55,7 +70,7 @@ void DrawGrassNew(Model model, float bendfactor )
 {
     for (int i = 0; i < NUM_GRASS_BLADES; i++)
     {
-        DrawModelEx(model, grassBlades[i].position, (Vector3){1.0f, 1.0f, 0.0f}, grassBlades[i].rotation*bendfactor, (Vector3){grassBlades[i].scale, grassBlades[i].scale, grassBlades[i].scale}, DARKGREEN);
+        DrawModelEx(model, grassBlades[i].position, (Vector3){1.0f, 1.0f, 0.0f}, (grassBlades[i].rotation*bendfactor), (Vector3){grassBlades[i].scale, grassBlades[i].scale, grassBlades[i].scale}, DARKGREEN);
     }
 }
 
@@ -70,18 +85,18 @@ void DrawGrass(Model model, Material material, Matrix transform)
 
 int main(void)
 {
-    const int screenWidth = 880;
-    const int screenHeight = 450;
+    int screenWidth = 880;
+    int screenHeight = 450;
 
-    SetConfigFlags(FLAG_MSAA_4X_HINT); 
-    InitWindow(screenWidth, screenHeight, "raylib");
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
+    InitWindow(screenWidth, screenHeight, "mmmm");
 
     Camera camera = {0};
-    camera.position = (Vector3){-5.0f, 0.4f, 2.0f};
-    camera.target = (Vector3){0.185f, 0.4f, -1.0f};
+    camera.position = (Vector3){-15.0f, 0.4f, 2.0f};
+    camera.target = (Vector3){0.185f, 1.5f, -1.0f};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
     camera.projection = CAMERA_PERSPECTIVE;
-    camera.fovy = 45.0f;
+    camera.fovy = 50.0f;
 
 
     int cameraMode = CAMERA_THIRD_PERSON;
@@ -100,9 +115,13 @@ int main(void)
 
     InitGrass();
     while (!WindowShouldClose())
-    {
+    {   
+
+        if (IsKeyPressed(KEY_C))
+            ToggleFullScreen(screenWidth, screenHeight);
+
         time += GetFrameTime();
-        float bendFactor = sinf(time * 2.0f) * 2.0f*DEG2RAD;
+        float bendFactor = sinf(time * 2.0f) * 3.0f*DEG2RAD;
         // float minAngle=-45.0f*DEG2RAD;
         // float maxAngle=45.0f*DEG2RAD;
         // if (bendFactor>maxAngle){
@@ -119,10 +138,10 @@ int main(void)
 
 
         BeginDrawing();
-        ClearBackground(GRAY);
+        ClearBackground(background_color);
 
         BeginMode3D(camera);
-        DrawPlane((Vector3){0.0f, 0.0f, 0.0f},(Vector2){32.0f, 32.0f}, LIME);
+        DrawPlane((Vector3){0.0f, 0.0f, 0.0f},(Vector2){32.0f, 32.0f}, planeColor);
         DrawGrassNew(model, bendFactor);
         if (cameraMode == CAMERA_THIRD_PERSON)
         {
