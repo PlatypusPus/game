@@ -14,6 +14,8 @@
 
 Color background_color = (Color){255,255,185,100};
 Color planeColor = (Color){20,42,19,255};
+// Color vig_in = (Color){255, 255, 255, 0};
+Color vColor = (Color){14, 13, 14, 1};
 
 typedef struct
 {
@@ -30,7 +32,7 @@ float Noise(float x, float y)
 }
 
 void ToggleFullScreen(int screenWidth, int screenHeight){
-            if(IsWindowFullscreen()){
+        if(IsWindowFullscreen()){
             int monitor = GetCurrentMonitor();
             SetWindowSize(GetMonitorWidth(monitor), GetMonitorHeight(monitor));
             ToggleFullscreen();
@@ -82,6 +84,9 @@ void DrawGrass(Model model, Material material, Matrix transform)
     }
 }
 
+//Vignette effect
+
+
 
 int main(void)
 {
@@ -101,23 +106,41 @@ int main(void)
 
     int cameraMode = CAMERA_THIRD_PERSON;
 
-    Material material = LoadMaterialDefault();
     // material.maps[MATERIAL_MAP_DIFFUSE].color = RED;
     // The Model
-    Model model = LoadModel("./grass.obj");
+    Model model = LoadModel("assets/grass.obj");
+    Mesh floor = GenMeshPlane(32.0f,32.0f,1,1);
+    Model ground = LoadModelFromMesh(floor);
+    // Mesh cube =  GenMeshCube(32.0f,32.0f,32.0f);
+    // Model sky_box = LoadModelFromMesh(cube);
 
-        float time = 0.0f;
-        float direction = 1;
+    // Texture2D skybtex = LoadTexture("assets/sky.png");
+    Texture2D grassfloor = LoadTexture("assets/grass.png");
+    ground.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = grassfloor;
+    // sky_box.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = skybtex;
+     Shader vig_shader = LoadShader(0, "shaders/vignette.fs");
+
+    int rLoc = GetShaderLocation(vig_shader, "radius");
+    int blurLoc = GetShaderLocation(vig_shader, "blur");
+
+    int colLoc = GetShaderLocation(vig_shader, "color");
+
+    // Radius and blur.
+    float radius = 0.225f;
+    float blur = 0.5f;
+
+    RenderTexture2D vTexture = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor())); // Vignette texture.
+
+    float time = 0.0f;
     
 
     DisableCursor();
     SetTargetFPS(60);
-
     InitGrass();
     while (!WindowShouldClose())
     {   
 
-        if (IsKeyPressed(KEY_C))
+        if (IsKeyPressed(KEY_F))
             ToggleFullScreen(screenWidth, screenHeight);
 
         time += GetFrameTime();
@@ -134,25 +157,41 @@ int main(void)
         // bendFactor = fmaxf(minAngle, fminf(maxAngle, bendFactor));
 
         UpdateCamera(&camera, cameraMode);
+        SetShaderValue(vig_shader, rLoc, &radius, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(vig_shader, blurLoc, &blur, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(vig_shader, colLoc, &vColor, SHADER_UNIFORM_VEC3);
         // Matrix transforms = MatrixMultiply(MatrixTranslate( 1.5f, 0.0f, 0.0f), MatrixRotateX(bendFactor-0.5f));
 
 
         BeginDrawing();
-        ClearBackground(background_color);
+        ClearBackground(BLACK);
 
         BeginMode3D(camera);
-        DrawPlane((Vector3){0.0f, 0.0f, 0.0f},(Vector2){32.0f, 32.0f}, planeColor);
+        rlDisableBackfaceCulling();
+        // DrawPlane((Vector3){0.0f, 0.0f, 0.0f},(Vector2){32.0f, 32.0f}, planeColor);
         DrawGrassNew(model, bendFactor);
         if (cameraMode == CAMERA_THIRD_PERSON)
         {
             DrawCube(camera.target, 0.5f, 0.5f, 0.5f, PURPLE);
             DrawCubeWires(camera.target, 0.5f, 0.5f, 0.5f, DARKPURPLE);
         }
+        DrawModelEx(ground, (Vector3){0.0f, 0.0f, 0.0f}, (Vector3){0.0f, 1.0f, 0.0f}, 90.0f*DEG2RAD, (Vector3){1.0f, 1.0f, 1.0f},planeColor);
 
+
+        rlEnableBackfaceCulling();
         EndMode3D();
+        // Draw vignette.
+        BeginShaderMode(vig_shader);
+
+        DrawTextureRec(vTexture.texture, (Rectangle){ 0, 0, vTexture.texture.width, -vTexture.texture.height }, (Vector2){ 0, 0 }, BLANK);
+
+        EndShaderMode();
         EndDrawing();
     }
     UnloadModel(model);
+    UnloadModel(ground);
+    UnloadShader(vig_shader);
+    UnloadTexture(grassfloor);
     CloseWindow();
     return 0;
 }
