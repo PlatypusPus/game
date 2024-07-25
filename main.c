@@ -94,7 +94,7 @@ int main(void)
     int screenHeight = 450;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-    InitWindow(screenWidth, screenHeight, "mmmm");
+    InitWindow(screenWidth, screenHeight, "GHOST");
 
     Camera camera = {0};
     camera.position = (Vector3){-15.0f, 0.4f, 2.0f};
@@ -175,17 +175,17 @@ int main(void)
             DrawCube(camera.target, 0.5f, 0.5f, 0.5f, PURPLE);
             DrawCubeWires(camera.target, 0.5f, 0.5f, 0.5f, DARKPURPLE);
         }
-        DrawModelEx(ground, (Vector3){0.0f, 0.0f, 0.0f}, (Vector3){0.0f, 1.0f, 0.0f}, 90.0f*DEG2RAD, (Vector3){1.0f, 1.0f, 1.0f},planeColor);
 
 
         rlEnableBackfaceCulling();
+        DrawModelEx(ground, (Vector3){0.0f, 0.0f, 0.0f}, (Vector3){0.0f, 1.0f, 0.0f}, 90.0f*DEG2RAD, (Vector3){1.0f, 1.0f, 1.0f},planeColor);
         EndMode3D();
+
         // Draw vignette.
         BeginShaderMode(vig_shader);
-
         DrawTextureRec(vTexture.texture, (Rectangle){ 0, 0, vTexture.texture.width, -vTexture.texture.height }, (Vector2){ 0, 0 }, BLANK);
-
         EndShaderMode();
+        
         EndDrawing();
     }
     UnloadModel(model);
