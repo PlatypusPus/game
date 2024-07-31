@@ -72,7 +72,7 @@ void DrawGrassNew(Model model, float bendfactor )
 {
     for (int i = 0; i < NUM_GRASS_BLADES; i++)
     {
-        DrawModelEx(model, grassBlades[i].position, (Vector3){1.0f, 1.0f, 0.0f}, (grassBlades[i].rotation*bendfactor), (Vector3){grassBlades[i].scale, grassBlades[i].scale, grassBlades[i].scale}, DARKGREEN);
+        DrawModelEx(model, grassBlades[i].position, (Vector3){1.0f, 0.0f, 0.0f}, (grassBlades[i].rotation*bendfactor), (Vector3){grassBlades[i].scale, grassBlades[i].scale, grassBlades[i].scale}, DARKGREEN);
     }
 }
 
