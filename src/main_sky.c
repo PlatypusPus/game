@@ -10,7 +10,7 @@
 
 #define GLSL_VERSION 100
 
-#define NUM_GRASS_BLADES 15000
+#define NUM_GRASS_BLADES 9000
 #define PATCH_SIZE 28.0f
 
 
@@ -109,7 +109,7 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "GHOST");
 
     Camera camera = {0};
-    camera.position = (Vector3){-15.0f, 0.4f, 2.0f};
+    camera.position = (Vector3){-15.0f, 2.0f, 2.0f};
     camera.target = (Vector3){0.185f, 1.5f, -1.0f};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
     camera.projection = CAMERA_PERSPECTIVE;
@@ -117,7 +117,22 @@ int main(void)
 
     int cameraMode = CAMERA_THIRD_PERSON;
 
+//Lights implementation
+    Shader lightShader = LoadShader(TextFormat("shaders/glsl%i/lighting.vs",GLSL_VERSION),TextFormat("shaders/glsl%i/lighting.fs",GLSL_VERSION));
+    lightShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(lightShader, "viewPos");
+    // lightShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(lightShader, "matModel");
+    int ambientLoc = GetShaderLocation(lightShader,"ambient");
+    SetShaderValue(lightShader, ambientLoc, (float[4]){ 0.05f, 0.05f, 0.05f, 1.0f }, SHADER_UNIFORM_VEC4);
+
+//Creating Lights
+    Light lights[MAX_LIGHTS] = {0};
+    lights[0] = CreateLight(LIGHT_POINT,(Vector3){0.0f,1.5f,0.0f},Vector3Zero(),planeColor,lightShader);
+
+//Grass blade
     Model model = LoadModel("assets/grass.obj");
+    model.materials[0].shader = lightShader;
+
+
     Mesh floor = GenMeshPlane(32.0f, 32.0f, 1, 1);
     Model ground = LoadModelFromMesh(floor);
 
@@ -130,7 +145,7 @@ int main(void)
     int blurLoc = GetShaderLocation(vig_shader, "blur");
     int colLoc = GetShaderLocation(vig_shader, "color");
 
-    //Skybox
+//Skybox
     Mesh cube = GenMeshCube(1.0f,1.0f,1.0f);
     Model skybox = LoadModelFromMesh(cube);
     skybox.materials[0].shader = LoadShader(TextFormat("shaders/glsl%i/skybox.vs",GLSL_VERSION),TextFormat("shaders/glsl%i/skybox.fs",GLSL_VERSION));
@@ -140,25 +155,12 @@ int main(void)
     Shader shdrCubemap = LoadShader(TextFormat("shaders/glsl%i/cubemap.vs",100),TextFormat("shaders/glsl%i/cubemap.fs",100));
     SetShaderValue(shdrCubemap, GetShaderLocation(shdrCubemap, "equirectangularMap"), (int[1]){ 0 }, SHADER_UNIFORM_INT);
 
-    Image img = LoadImage("assets/skyBox.png");
+    Image img = LoadImage("assets/skyBoxx.png");
     TextureCubemap cubeMapTexture = LoadTextureCubemap(img,CUBEMAP_LAYOUT_AUTO_DETECT);
     UnloadImage(img);
     skybox.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = cubeMapTexture;
 
 
-//Lights implementation
-    Shader lightShader = LoadShader(TextFormat("shaders/glsl%i/lighting.vs",GLSL_VERSION),TextFormat("shaders/glsl%i/lighting.fs",GLSL_VERSION));
-    lightShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(lightShader, "viewPos");
-    lightShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(lightShader, "matModel");
-    int ambientLoc = GetShaderLocation(lightShader,"ambient");
-    SetShaderValue(lightShader, ambientLoc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
-
-//Creating Lights
-    Light lights[MAX_LIGHTS] = {0};
-    // lights[0] = CreateLight(LIGHT_POINT,(Vector3){2, 6 , -2},Vector3Zero(),YELLOW,lightShader);
-    // lights[1] = CreateLight(LIGHT_POINT,(Vector3){-2, 6 , -2},Vector3Zero(),GREEN,lightShader);
-    lights[2] = CreateLight(LIGHT_POINT,(Vector3){-2, 6 , 2},Vector3Zero(),RED,lightShader);
-    // lights[3] = CreateLight(LIGHT_POINT,(Vector3){2, 6 , 2},Vector3Zero(),BLUE,lightShader);
 
 
     float radius = 0.125f;
@@ -187,29 +189,26 @@ int main(void)
         SetShaderValue(vig_shader, blurLoc, &blur, SHADER_UNIFORM_FLOAT);
         SetShaderValue(vig_shader, colLoc, &vColor, SHADER_UNIFORM_VEC3);
 
-        // Image img = LoadImage("assets/skybox.png");
-        // skybox.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = LoadTextureCubemap(img, CUBEMAP_LAYOUT_AUTO_DETECT);
-        // UnloadImage(img);
-
+        
 // Update the shader with the camera view vector (points towards { 0.0f, 0.0f, 0.0f })
         float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
         SetShaderValue(lightShader, lightShader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
+        Vector3 light_head = (Vector3){0+camera.target.x,5+camera.target.y,8+camera.target.z};
+        lights[0].position = light_head;
 // Update light values (actually, only enable/disable them)
-        for (int i = 0; i < MAX_LIGHTS; i++) 
-        {
-            UpdateLightValues(lightShader, lights[i]);
-        }
+        UpdateLightValues(lightShader,lights[0]);
+
 
         //Draw
         BeginDrawing();
         ClearBackground(BLACK);
 
         BeginMode3D(camera);
+        BeginShaderMode(lightShader);
         rlDisableBackfaceCulling();
         rlDisableDepthMask();
             DrawModel(skybox, (Vector3){0,0,0},30.0f,BLACK);
         rlEnableDepthMask();
-        BeginShaderMode(lightShader);
         DrawGrassNew(model, bendFactor);
 
         if (cameraMode == CAMERA_THIRD_PERSON)
@@ -219,15 +218,12 @@ int main(void)
         }
 
         rlEnableBackfaceCulling();
-        // DrawModelEx(ground, (Vector3){0.0f, 0.0f, 0.0f}, (Vector3){0.0f, 1.0f, 0.0f}, 90.0f * DEG2RAD, (Vector3){1.0f, 1.0f, 1.0f}, planeColor);
-        DrawPlane(Vector3Zero(),(Vector2){30,30},planeColor);
-        for (int i = 0; i < MAX_LIGHTS; i++)
-                {
-                    if (lights[i].enabled) 
-                        DrawSphereEx(lights[i].position, 0.2f, 8, 8, lights[i].color);
-                    else 
-                        DrawSphereWires(lights[i].position, 0.2f, 8, 8, ColorAlpha(lights[i].color, 0.3f));
-                }
+        DrawModelEx(ground, (Vector3){0.0f, 0.0f, 0.0f}, (Vector3){0.0f, 1.0f, 0.0f}, 90.0f * DEG2RAD, (Vector3){1.0f, 1.0f, 1.0f}, planeColor);
+        // DrawPlane(Vector3Zero(),(Vector2){30,30},planeColor);
+        // if (lights[0].enabled) 
+        //     DrawSphereEx(lights[0].position, 0.2f, 8, 8, lights[0].color);
+        // else 
+        //     DrawSphereWires(lights[0].position, 0.2f, 8, 8, ColorAlpha(lights[0].color, 0.3f));
 
         EndMode3D();
         BeginShaderMode(vig_shader);
