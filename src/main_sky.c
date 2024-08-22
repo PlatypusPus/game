@@ -113,7 +113,7 @@ int main(void)
     camera.target = (Vector3){0.185f, 1.5f, -1.0f};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
     camera.projection = CAMERA_PERSPECTIVE;
-    camera.fovy = 50.0f;
+    camera.fovy = 60.0f;
 
     int cameraMode = CAMERA_THIRD_PERSON;
 
@@ -122,11 +122,15 @@ int main(void)
     lightShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(lightShader, "viewPos");
     // lightShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(lightShader, "matModel");
     int ambientLoc = GetShaderLocation(lightShader,"ambient");
-    SetShaderValue(lightShader, ambientLoc, (float[4]){ 0.05f, 0.05f, 0.05f, 1.0f }, SHADER_UNIFORM_VEC4);
+    SetShaderValue(lightShader, ambientLoc, (float[4]){ 0.05f, 0.075f, 0.07f, 1.0f }, SHADER_UNIFORM_VEC4);
+    float attenuation = 0.05f;
+    int attenuationLoc = GetShaderLocation(lightShader, "attenuationLoc");
+    SetShaderValue(lightShader, attenuationLoc, &attenuation, SHADER_UNIFORM_FLOAT);
+    
 
 //Creating Lights
     Light lights[MAX_LIGHTS] = {0};
-    lights[0] = CreateLight(LIGHT_POINT,(Vector3){0.0f,1.5f,0.0f},Vector3Zero(),planeColor,lightShader);
+    lights[0] = CreateLight(LIGHT_POINT,(Vector3){0.0f,1.5f,0.0f},Vector3Zero(),WHITE,attenuation,lightShader);
 
 //Grass blade
     Model model = LoadModel("assets/grass.obj");
