@@ -73,7 +73,7 @@ extern "C" {            // Prevents name mangling of functions
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
-Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shader shader);   // Create a light and get shader locations
+Light CreateLight(int type, Vector3 position, Vector3 target, Color color, float attenuation, Shader shader);   // Create a light and get shader locations
 void UpdateLightValues(Shader shader, Light light);         // Send light properties to shader
 
 #ifdef __cplusplus
@@ -118,7 +118,7 @@ static int lightsCount = 0;    // Current amount of created lights
 //----------------------------------------------------------------------------------
 
 // Create a light and get shader locations
-Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shader shader)
+Light CreateLight(int type, Vector3 position, Vector3 target, Color color, float attenuation ,Shader shader)
 {
     Light light = { 0 };
 
@@ -129,6 +129,7 @@ Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shade
         light.position = position;
         light.target = target;
         light.color = color;
+        light.attenuation = attenuation;
 
         // NOTE: Lighting shader naming must be the provided ones
         light.enabledLoc = GetShaderLocation(shader, TextFormat("lights[%i].enabled", lightsCount));
@@ -136,6 +137,7 @@ Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shade
         light.positionLoc = GetShaderLocation(shader, TextFormat("lights[%i].position", lightsCount));
         light.targetLoc = GetShaderLocation(shader, TextFormat("lights[%i].target", lightsCount));
         light.colorLoc = GetShaderLocation(shader, TextFormat("lights[%i].color", lightsCount));
+        light.attenuationLoc = GetShaderLocation(shader, TextFormat("lights[%i].attenuation", lightsCount));
 
         UpdateLightValues(shader, light);
         
@@ -165,6 +167,9 @@ void UpdateLightValues(Shader shader, Light light)
     float color[4] = { (float)light.color.r/(float)255, (float)light.color.g/(float)255, 
                        (float)light.color.b/(float)255, (float)light.color.a/(float)255 };
     SetShaderValue(shader, light.colorLoc, color, SHADER_UNIFORM_VEC4);
+
+    //Send to shader Light attenuation value
+    SetShaderValue(shader, light.attenuationLoc, &light.attenuation, SHADER_UNIFORM_FLOAT);
 }
 
 #endif // RLIGHTS_IMPLEMENTATION
