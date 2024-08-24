@@ -14,6 +14,7 @@
 #define PATCH_SIZE 28.0f
 
 
+
 Color background_color = (Color){255, 255, 185, 100};
 Color planeColor = (Color){20, 42, 19, 255};
 Color vColor = (Color){14, 13, 14, 1};
@@ -159,7 +160,7 @@ int main(void)
     Shader shdrCubemap = LoadShader(TextFormat("shaders/glsl%i/cubemap.vs",100),TextFormat("shaders/glsl%i/cubemap.fs",100));
     SetShaderValue(shdrCubemap, GetShaderLocation(shdrCubemap, "equirectangularMap"), (int[1]){ 0 }, SHADER_UNIFORM_INT);
 
-    Image img = LoadImage("assets/skyBoxx.png");
+    Image img = LoadImage("assets/skyBox.png");
     TextureCubemap cubeMapTexture = LoadTextureCubemap(img,CUBEMAP_LAYOUT_AUTO_DETECT);
     UnloadImage(img);
     skybox.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = cubeMapTexture;
@@ -169,6 +170,9 @@ int main(void)
 
     float radius = 0.125f;
     float blur = 0.48f;
+    SetShaderValue(vig_shader, rLoc, &radius, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(vig_shader, blurLoc, &blur, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(vig_shader, colLoc, &vColor, SHADER_UNIFORM_VEC3);
 
     RenderTexture2D vTexture = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor())); // Vignette texture.
 
@@ -189,9 +193,6 @@ int main(void)
         UpdateCamera(&camera, cameraMode);
         UpdateGrassPatches(camera.target, PATCH_SIZE);
 
-        SetShaderValue(vig_shader, rLoc, &radius, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(vig_shader, blurLoc, &blur, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(vig_shader, colLoc, &vColor, SHADER_UNIFORM_VEC3);
 
         
 // Update the shader with the camera view vector (points towards { 0.0f, 0.0f, 0.0f })
@@ -210,6 +211,7 @@ int main(void)
         BeginMode3D(camera);
         BeginShaderMode(lightShader);
         rlDisableBackfaceCulling();
+        
         rlDisableDepthMask();
             DrawModel(skybox, (Vector3){0,0,0},30.0f,BLACK);
         rlEnableDepthMask();

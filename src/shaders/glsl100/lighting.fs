@@ -1,5 +1,4 @@
 #version 100
-
 precision mediump float;
 
 // Input vertex attributes (from vertex shader)
@@ -22,6 +21,7 @@ struct Light {
     vec3 position;
     vec3 target;
     vec4 color;
+    float attenuation;  // Attenuation factor
 };
 
 uniform Light lights[MAX_LIGHTS];
@@ -41,6 +41,7 @@ void main()
         if (lights[i].enabled == 1)
         {
             vec3 light = vec3(0.0);
+            float attenuation = 1.0; // Default attenuation for directional lights
 
             if (lights[i].type == LIGHT_DIRECTIONAL)
             {
@@ -50,14 +51,18 @@ void main()
             if (lights[i].type == LIGHT_POINT)
             {
                 light = normalize(lights[i].position - fragPosition);
+                float distance = length(lights[i].position - fragPosition);
+                // Calculate attenuation based on distance
+                attenuation = 1.0 / (1.0 + lights[i].attenuation * distance * distance);
             }
 
             float NdotL = max(dot(normal, light), 0.0);
-            lightDot += lights[i].color.rgb * NdotL;
+            lightDot += lights[i].color.rgb * NdotL * attenuation;  // Apply attenuation to light intensity
 
             float specCo = 0.0;
-            if (NdotL > 0.0) specCo = pow(max(0.0, dot(viewD, reflect(-light, normal))), 5.0);
-            specular += specCo;
+            if (NdotL > 0.0) 
+                specCo = pow(max(0.0, dot(viewD, reflect(-light, normal))), 5.0);
+            specular += specCo * attenuation;  // Apply attenuation to specular as well
         }
     }
 
