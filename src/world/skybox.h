@@ -14,7 +14,7 @@ Model skyBox(){
     Shader shdrCubemap = LoadShader(TextFormat("../shaders/glsl%i/cubemap.vs",100),TextFormat("../shaders/glsl%i/cubemap.fs",100));
     SetShaderValue(shdrCubemap, GetShaderLocation(shdrCubemap, "equirectangularMap"), (int[1]){ 0 }, SHADER_UNIFORM_INT);
 
-    Image img = LoadImage("../assets/skybox.png");
+    Image img = LoadImage("../assets/skyBox.png");
     TextureCubemap cubeMapTexture = LoadTextureCubemap(img,CUBEMAP_LAYOUT_AUTO_DETECT);
     UnloadImage(img);
     skybox.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = cubeMapTexture;
