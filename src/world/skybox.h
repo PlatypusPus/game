@@ -10,11 +10,8 @@ Model skyBox(){
     skybox.materials[0].shader = LoadShader(TextFormat("../shaders/glsl%i/skybox.vs",GLSL_VERSION),TextFormat("../shaders/glsl%i/skybox.fs",GLSL_VERSION));
     SetShaderValue(skybox.materials[0].shader, GetShaderLocation(skybox.materials[0].shader,"environmentMap"), (int[1]){ MATERIAL_MAP_CUBEMAP }, SHADER_UNIFORM_INT);
     SetShaderValue(skybox.materials[0].shader, GetShaderLocation(skybox.materials[0].shader,"doGamma"), (int[1]){0}, SHADER_UNIFORM_INT);
-    SetShaderValue(skybox.materials[0].shader, GetShaderLocation(skybox.materials[0].shader,"vflipped"), (int[1]){0}, SHADER_UNIFORM_INT);
-    Shader shdrCubemap = LoadShader(TextFormat("../shaders/glsl%i/cubemap.vs",100),TextFormat("../shaders/glsl%i/cubemap.fs",100));
-    SetShaderValue(shdrCubemap, GetShaderLocation(shdrCubemap, "equirectangularMap"), (int[1]){ 0 }, SHADER_UNIFORM_INT);
-
-    Image img = LoadImage("../assets/skyBox.png");
+    SetShaderValue(skybox.materials[0].shader, GetShaderLocation(skybox.materials[0].shader,"vflipped"), (int[1]){1}, SHADER_UNIFORM_INT);
+    Image img = LoadImage("../assets/skybox_moon.png");
     TextureCubemap cubeMapTexture = LoadTextureCubemap(img,CUBEMAP_LAYOUT_AUTO_DETECT);
     UnloadImage(img);
     skybox.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = cubeMapTexture;
