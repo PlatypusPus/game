@@ -48,7 +48,7 @@ Shader SetVignette()
     int rLoc = GetShaderLocation(vig_shader, "radius");
     int blurLoc = GetShaderLocation(vig_shader, "blur");
     int colLoc = GetShaderLocation(vig_shader, "color");
-    float radius = 0.125f;
+    float radius = 0.2f;
     float blur = 0.65f;
     SetShaderValue(vig_shader, rLoc, &radius, SHADER_UNIFORM_FLOAT);
     SetShaderValue(vig_shader, blurLoc, &blur, SHADER_UNIFORM_FLOAT);
