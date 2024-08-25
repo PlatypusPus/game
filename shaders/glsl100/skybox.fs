@@ -15,7 +15,7 @@ void main()
     // Fetch color from texture map
     vec4 texelColor = vec4(0.0);
 
-    if (vflipped) texelColor = textureCube(environmentMap, vec3(fragPosition.x, -fragPosition.y, fragPosition.z));
+    if (vflipped) texelColor = textureCube(environmentMap, vec3(-fragPosition.x, fragPosition.y, -fragPosition.z));
     else texelColor = textureCube(environmentMap, fragPosition);
 
     vec3 color = vec3(texelColor.x, texelColor.y, texelColor.z);
